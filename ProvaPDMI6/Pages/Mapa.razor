@@ -1,0 +1,19 @@
+﻿@page "/mapa"
+@inject IJSRuntime JSRuntime
+
+<h3>Mapa</h3>
+
+<div id="mapa" style="height: 500px;"></div>
+
+
+@code {
+    private string MapDivId = "mapa";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("initializeMap", MapDivId);
+        }
+    }
+}

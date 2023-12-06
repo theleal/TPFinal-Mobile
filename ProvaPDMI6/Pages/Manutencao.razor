@@ -1,0 +1,141 @@
+﻿@page "/adicionar"
+@page "/atualizar_livro/{LivroId:int}"
+
+@inject ILivroService LivroService
+@inject NavigationManager navigation
+
+<h3>Manutenção dos livros</h3>
+
+<div class="form-group">
+    <label>Nome do livro</label>
+    <input @bind="Nome" class="form-control" placeholder="Nome do livro">
+</div>
+
+<div class="form-group">
+    <label>Autor</label>
+    <input @bind="Autor" class="form-control" placeholder="Nome do autor">
+</div>
+
+<div class="form-group">
+    <label>E-mail</label>
+    <input @bind="Email" class="form-control" placeholder="E-mail do autor">
+</div>
+
+<div class="form-group">
+    <label>ISBN</label>
+    <input @bind="ISBN" class="form-control" placeholder="ISBN">
+</div>
+
+<button type="submit" @onclick="EditarCampos" class="mt-2 btn btn-success">
+    Adicionar
+</button>
+
+<button type="submit" @onclick="VoltarPagina" class="mt-2 btn btn-dark">
+    Voltar
+</button>
+
+@code {
+    [Parameter]
+    public int LivroId { get; set; }
+
+    private string Nome;
+    private string Autor;
+    private string Email;
+    private string ISBN;
+
+    protected async override Task OnInitializedAsync()
+    {
+        if (LivroId > 0)
+        {
+            await LivroService.InitializeAsync();
+            var response = await LivroService.ListarLivroPorId(LivroId);
+
+            if (response != null)
+            {
+                Nome = response.NomeLivro;
+                Autor = response.NomeAutor;
+                Email = response.EmailAutor;
+                ISBN = response.ISBN;
+            }
+        }
+    }
+
+    public async Task<bool> Validacao()
+    {
+        if (string.IsNullOrEmpty(Nome))
+        {
+            await App.Current.MainPage.DisplayAlert("Aviso", "Digite o campo nome do livro", "OK");
+            return false;
+        }
+
+        if (string.IsNullOrEmpty(Autor))
+        {
+            await App.Current.MainPage.DisplayAlert("Aviso", "", "OK");
+            return false;
+        }
+
+        if (string.IsNullOrEmpty(Email))
+        {
+            await App.Current.MainPage.DisplayAlert("Aviso", "", "OK");
+            return false;
+        }
+
+        if (string.IsNullOrEmpty(ISBN))
+        {
+            await App.Current.MainPage.DisplayAlert("Aviso", "", "OK");
+            return false;
+        }
+
+        return true;
+    }
+
+    private async Task EditarCampos()
+    {
+        if (await Validacao())
+        {
+            var livro = new Livro
+            {
+                Id = LivroId,
+                NomeLivro = Nome,
+                NomeAutor = Autor,
+                EmailAutor = Email,
+                ISBN = ISBN
+            };
+
+            int retornoService = -1;
+
+            if (LivroId > 0)
+            {
+                retornoService = await LivroService.AtualizarLivro(livro);
+            } 
+            else
+            {
+                retornoService = await LivroService.AdicionarLivro(livro);
+            }
+
+            if (retornoService > 0)
+            {
+                Nome = Autor = Email = ISBN = string.Empty;
+                this.StateHasChanged();
+                await App.Current.MainPage.DisplayAlert(
+                    "Adicionar Livro",
+                    "Livro salvo com sucesso", 
+                    "OK");
+                VoltarPagina();
+            }
+            else
+            {
+                await App.Current.MainPage.DisplayAlert(
+                    "Aviso",
+                    "Ocorreu algum erro..",
+                    "OK");
+            }
+        }
+    }
+
+    private void VoltarPagina()
+    {
+        navigation.NavigateTo($"/livros");
+    }
+   
+}

@@ -1,0 +1,80 @@
+﻿@page "/livros"
+
+@inject ILivroService livroService
+@inject NavigationManager navigation
+
+<h3>Lista de livros</h3>
+
+@if (livros == null)
+{
+    <p><em>Carregando</em></p>
+} 
+else
+{
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+              <tr>
+                    <th>Nome do livro</th>
+                    <th>Nome do autor</th>
+                    <th>E-mail</th>
+                    <th>ISBN</th>
+                    <th></th>
+                    <th></th>
+              </tr>
+            </thead>
+            <tbody>
+                @foreach(var bookl in livros)
+                {
+                    <tr>
+                        <td>@bookl.NomeLivro</td>
+                        <td>@bookl.NomeAutor</td>
+                        <td>@bookl.EmailAutor</td>
+                        <td>@bookl.ISBN</td>
+                        <td>
+                            <button type="submit"
+                            @onclick="@(() => EditarLivro(bookl.Id))"
+                                    class="btn btn-success">
+                                Atualizar
+                            </button>
+                        </td>
+                        <td>
+                            <button 
+                                type="submit"
+                                @onclick="@(() => DeletarLivro(bookl))"
+                                class="btn btn-danger">Deletar
+                            </button>
+                        </td>
+
+                    </tr>
+                }
+        </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    private List<Livro> livros;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await livroService.InitializeAsync();
+        livros = await livroService.ListarLivros();
+    }
+
+    private async void DeletarLivro(Livro livro)
+    {
+        var retornoService = await livroService.DeletarLivro(livro);
+
+        if (retornoService > 0)
+        {
+            await OnInitializedAsync();
+            this.StateHasChanged();
+        }
+    }
+
+    private void EditarLivro(int id)
+    {
+        navigation.NavigateTo($"atualizar_livro/{id}");
+    }
+}

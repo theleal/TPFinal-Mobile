@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\build\ProvaPDMI6.props" />
+</Project>
